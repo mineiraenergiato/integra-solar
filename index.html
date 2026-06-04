@@ -4789,34 +4789,23 @@ async function onAuthSuccess(user){
 
  let userErr = null;
 
- ({ data:userData, error:userErr } = await supabase
+ // Usar função SECURITY DEFINER para bypasear RLS no login
+ const { data: rpcData, error: rpcErr } = await supabase
+   .rpc('get_current_user_data');
 
- .from('app_users')
-
- .select('id, name, email, organization_id, role_id, is_super_admin')
-
- .eq('id', user.id)
-
- .maybeSingle());
-
-
-
- if((!userData || userErr) && user.email){
-
- const fallback = await supabase
-
- .from('app_users')
-
- .select('id, name, email, organization_id, role_id, is_super_admin')
-
- .eq('email', user.email)
-
- .maybeSingle();
-
- userData = fallback.data;
-
- userErr = fallback.error;
-
+ if (rpcData && rpcData.length > 0) {
+   userData = rpcData[0];
+   userErr = null;
+ } else {
+   userErr = rpcErr;
+   // Fallback: busca direta caso rpc falhe
+   const { data: fallbackData, error: fallbackErr } = await supabase
+     .from('app_users')
+     .select('id, name, email, organization_id, role_id, is_super_admin')
+     .eq('id', user.id)
+     .maybeSingle();
+   userData = fallbackData;
+   userErr = fallbackErr;
  }
 
 
