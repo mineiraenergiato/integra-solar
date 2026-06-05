@@ -3160,10 +3160,6 @@ function initSupabase(){
 
  console.warn('[Integra Solar] Aguardando biblioteca Supabase carregar...');
 
- // Tentar carregar o CDN novamente como fallback
-
- _carregarSupabaseCDN();
-
  }
 
  } else {
@@ -3184,10 +3180,9 @@ function initSupabase(){
 
  try {
 
- // Preservar cliente existente se já tiver sessão ativa
- if(!supabase || !supabase.auth){
+ if(!supabase || typeof supabase.from !== "function"){
    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-     auth: { persistSession: true, autoRefreshToken: true, storageKey: 'integrasolar-auth' }
+     auth: { persistSession: true, autoRefreshToken: true }
    });
  }
 
@@ -3235,43 +3230,9 @@ function initSupabase(){
 
 
 
-// Carregar CDN do Supabase dinamicamente como fallback
+// CDN fallback desativado — causa instabilidade
 
-function _carregarSupabaseCDN(){
-
- // Não recarregar se o cliente Supabase já foi criado e tem sessão ativa
- if(_supabaseInitCompleted) return;
-
- // Só tenta se a lib ainda não carregou
- if(window.supabase && typeof window.supabase.createClient === 'function') return;
-
- var fallbacks = [
-
- 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-
- 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
-
- 'https://esm.sh/@supabase/supabase-js@2',
-
- ];
-
- // Carregar CDN alternativo apenas se o principal não carregou
- var s = document.createElement('script');
-
- s.src = fallbacks[1]; // unpkg como fallback
-
- s.onload = function(){
-   // Só inicializa se o cliente ainda não foi criado
-   if(!_supabaseInitCompleted){
-     console.log('[Integra Solar] CDN Supabase fallback carregado ');
-   }
- };
-
- s.onerror = function(){ console.warn('[Integra Solar] Fallback CDN também falhou.'); };
-
- document.head.appendChild(s);
-
-}
+function _carregarSupabaseCDN(){ return; }
 
 
 
