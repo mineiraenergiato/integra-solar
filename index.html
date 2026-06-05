@@ -3029,9 +3029,9 @@ var BACKEND_API_KEY = 'integra-solar-api-2025';
 
 
 
-var SUPABASE_URL = 'https://reyvkyoklqacupxccpix.supabase.co';
+var SUPABASE_URL = 'https://loabxacevwevnuvitgxc.supabase.co';
 
-var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJleXZreW9rbHFhY3VweGNjcGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NDMwOTEsImV4cCI6MjA5NjExOTA5MX0.axeaju4BUo5oKl2acp2FsijAxfqpcFweo4sZAWZ4mcM';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvYWJ4YWNldndldm51dml0Z3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjcwMTIsImV4cCI6MjA5NjI0MzAxMn0.NcWnjmbeEn34ueA5pUWIWgZFzI8TXuplwpyjGTuPHJ4';
 
 
 
@@ -3160,6 +3160,10 @@ function initSupabase(){
 
  console.warn('[Integra Solar] Aguardando biblioteca Supabase carregar...');
 
+ // Tentar carregar o CDN novamente como fallback
+
+ _carregarSupabaseCDN();
+
  }
 
  } else {
@@ -3180,11 +3184,11 @@ function initSupabase(){
 
  try {
 
- if(!supabase || typeof supabase.from !== "function"){
-   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-     auth: { persistSession: true, autoRefreshToken: true }
-   });
- }
+ supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+
+ auth: { persistSession: true, autoRefreshToken: true }
+
+ });
 
  DB_READY = true;
 
@@ -3230,9 +3234,37 @@ function initSupabase(){
 
 
 
-// CDN fallback desativado — causa instabilidade
+// Carregar CDN do Supabase dinamicamente como fallback
 
-function _carregarSupabaseCDN(){ return; }
+function _carregarSupabaseCDN(){
+
+ // Só tenta se ainda não carregou
+
+ if(window.supabase && typeof window.supabase.createClient === 'function') return;
+
+ var fallbacks = [
+
+ 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+
+ 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
+
+ 'https://esm.sh/@supabase/supabase-js@2',
+
+ ];
+
+ // Já temos o CDN principal no <head> — carregar um alternativo
+
+ var s = document.createElement('script');
+
+ s.src = fallbacks[1]; // unpkg como fallback
+
+ s.onload = function(){ console.log('[Integra Solar] CDN Supabase fallback carregado '); };
+
+ s.onerror = function(){ console.warn('[Integra Solar] Fallback CDN também falhou.'); };
+
+ document.head.appendChild(s);
+
+}
 
 
 
